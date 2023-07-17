@@ -57,7 +57,7 @@ def align(item, folderpath):
     folderpath = folderpath + "/ResultFiles" 
     dest = folderpath + "/AlignedResults"
     notfound = []
-    print(os.environ.get('PYTHONWARNINGS'))
+    #print(os.environ.get('PYTHONWARNINGS'))
 
     warnings.filterwarnings("ignore", category=UserWarning)
     warnings.filterwarnings("ignore")

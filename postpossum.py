@@ -198,7 +198,7 @@ def post_possum(filename,folderpath,ligand,clean): # main function for post poss
     #arr = [f for f in os.listdir(folderpath) if not f.startswith('.')]#os.listdir(folderpath) 
     #print(arr)
     
-    print(os.environ.get('PYTHONWARNINGS'))
+    #print(os.environ.get('PYTHONWARNINGS'))
 
     # Add this line at the beginning of your code
     warnings.filterwarnings("ignore", category=UserWarning)

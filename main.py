@@ -1,5 +1,6 @@
 from multiprocessing import Pool
 import multiprocessing
+import time
 import os
 from txtconverter import txt_to_excel
 from postpossum import post_possum
@@ -93,16 +94,27 @@ def process_aligned_file(params):
     i, destination = params
     align(i, destination)
 
-def main(ligands, destination, clean, max_RMSD, isLigandOfInterest, numberOfProcesses):
+def measure_duration(step_name, start_time, end_time, file):
+    duration = end_time - start_time
+    file.write(f"{step_name} Duration: {duration:.2f} seconds\n")
+
+def main(ligands, destination, clean, max_RMSD, isLigandOfInterest, numberOfProcesses, file, start_pipeline):
     """
     Main function to execute the pipeline of operations.
     """
-
+    start_pdb = time.time()
     # Query PDB for ligand information
     prodict = process_ligands(ligands, isLigandOfInterest)
-
+    end_pdb = time.time()
+    measure_duration("PDB Data Collection", start_pdb, end_pdb, file)
+    
+    start_possum = time.time()
     # Submit the query results to POSSUM
     destination = send_possum_req(prodict, destination, numberOfProcesses)
+    end_possum = time.time()
+    measure_duration("POSsUM Data Collection", start_possum, end_possum, file)
+    
+    start_conversion = time.time()
     #destination = destination[:len(destination) - 3] modified used to be uncommented
     if destination.endswith("/")==False: #new line!!!
         destination = destination + "/" #new line!!!
@@ -111,8 +123,11 @@ def main(ligands, destination, clean, max_RMSD, isLigandOfInterest, numberOfProc
         destination_to_excel = destination + ligand
         # Convert the POSSUM results to Excel files
         destination_to_excel = txt_to_excel(destination_to_excel)
+    end_conversion = time.time()
+    measure_duration("TXT to Excel Conversion", start_conversion, end_conversion, file)
 
     # Process Excel files and aligned files using post_possum and align functions
+    start_processing = time.time()
     for key in prodict:
         alignment_destination = destination + key + "/ExcelFiles"
         # Process Excel files using post_possum
@@ -123,15 +138,25 @@ def main(ligands, destination, clean, max_RMSD, isLigandOfInterest, numberOfProc
             try:
                 p.map(process_excel_file, post_possum_params)
             except:
-                print("Excel file already exists!")
+                file.write("Excel file already exists!")
+                #print("Excel file already exists!")
         # Process aligned files using align
         aligned_files = [f for f in os.listdir(alignment_destination) if f.endswith(".xlsx")]
         align_params = [(i, alignment_destination) for i in aligned_files]
-        print("Alignment starts for: ", key)
+        file.write("Alignment starts for: ", key)
+        #print("Alignment starts for: ", key)
         with Pool(numberOfProcesses) as p:
             p.map(process_aligned_file, align_params)
+    end_processing = time.time()
+    measure_duration("Data Processing and Alignment", start_processing, end_processing, file)
+    file.close()
+    overall_duration = time.time() - start_pipeline
+    file.write("Pipeline Duration: {:.2f} seconds".format(overall_duration))
+    #print("Pipeline Duration: {:.2f} seconds".format(overall_duration))
 if __name__ == "__main__":
+    file = open("logs.txt", "w")
+    start_pipeline = time.time()
     ligand, destination, clean, max_RMSD, isLigandOfInterest, numberOfProcesses = take_input()
-    main(ligand, destination, clean, max_RMSD, isLigandOfInterest, numberOfProcesses)
+    main(ligand, destination, clean, max_RMSD, isLigandOfInterest, numberOfProcesses, file, start_pipeline)
 
 
