@@ -138,21 +138,18 @@ def main(ligands, destination, clean, max_RMSD, isLigandOfInterest, numberOfProc
             try:
                 p.map(process_excel_file, post_possum_params)
             except:
-                file.write("Excel file already exists!")
-                #print("Excel file already exists!")
+                print("Excel file already exists!")
         # Process aligned files using align
         aligned_files = [f for f in os.listdir(alignment_destination) if f.endswith(".xlsx")]
         align_params = [(i, alignment_destination) for i in aligned_files]
-        file.write("Alignment starts for: ", key)
-        #print("Alignment starts for: ", key)
+        print("Alignment starts for: ", key)
         with Pool(numberOfProcesses) as p:
             p.map(process_aligned_file, align_params)
     end_processing = time.time()
     measure_duration("Data Processing and Alignment", start_processing, end_processing, file)
     file.close()
     overall_duration = time.time() - start_pipeline
-    file.write("Pipeline Duration: {:.2f} seconds".format(overall_duration))
-    #print("Pipeline Duration: {:.2f} seconds".format(overall_duration))
+    print("Pipeline Duration: {:.2f} seconds".format(overall_duration))
 if __name__ == "__main__":
     file = open("logs.txt", "w")
     start_pipeline = time.time()

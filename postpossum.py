@@ -306,9 +306,12 @@ def post_possum(filename,folderpath,ligand,clean): # main function for post poss
         temp=[]
         if(clean):
             lst = df_final.values.tolist()
+            print(lst)
             for k in lst:
+                print(k)
                 lig = k[1].strip(' \n')
                 #print(lig)
+                print(lig)
                 if lig in ligand:
                     temp.append(k)
         if(len(temp)>1):
